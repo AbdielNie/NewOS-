@@ -1,0 +1,72 @@
+void schedule(void)
+{
+	union task *new_task;
+	unsigned long plan_ptr;
+	
+	/**判断是否允许调度*/
+	if (schedule_flag == false) return;
+	
+	/**如果当前任务所属的实时优先级拥有多个任务*/
+	if (current->info.next != current)
+	{
+
+		/**将当前任务从多任务链表中去除*/
+		current->info.next->info.prev = current->info.prev;
+		current->info.prev->info.next = current->info.next;
+		
+		/**将当前任务所属的优先级的链表的指针指向下一个任务*/
+		task_plan[current->info.plan] = current->info.next;
+		
+	/**如果当前任务所属的实时优先级没有包含其他任务*/
+	}else{
+		/**将当前任务所属的优先级的链表的指针置NULL*/
+		task_plan[current->info.plan] = NULL;
+	}
+	
+	/**重新确定当前任务实时优先级*/
+	current->info.plan ++;
+	if (current->info.plan >= num_plan)
+	{
+		current->info.plan = num_plan - 1;
+	}
+	
+	// print_task(current->info.id);
+	/**选择下一个要运行的进程*/
+	for (plan_ptr = 0; plan_ptr < num_plan; plan_ptr ++)
+	{
+		if (task_plan[num_plan] != NULL)
+		{
+			
+			print_task(task_plan[num_plan]->info.id);
+			// /**将这个任务指定为新任务*/
+			// new_task = task_plan[num_plan];
+			// printk("C");
+			// fin:goto fin;
+			// /**当该优先级的链表中只有一个任务时*/
+			// if (task_plan[num_plan]->info.prev == task_plan[num_plan])
+			// {
+				// printk("A");
+				// /**将这个任务脱离双向循环链表*/
+				// task_plan[num_plan] = NULL;
+			// }else{printk("B");
+				// /**将这个任务脱离双向循环链表*/
+				// task_plan[num_plan]->info.prev->info.next = task_plan[num_plan]->info.next;
+				// task_plan[num_plan]->info.next->info.prev = task_plan[num_plan]->info.prev;
+			// }
+			
+			// /**退出循环*/
+			// break;
+		}
+	}
+	// print_task(current->info.id);
+	
+	/**分配时间片*/
+	new_task->info.counter = 30;
+	printk("new task union:%d", new_task->info.id);
+	// fin:goto fin;
+	/**切换页目录表*/
+	write_CR3(new_task->info.pptr->cr3);
+	
+	/**切换至新任务*/
+	switch_to(new_task);
+}
